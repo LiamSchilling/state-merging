@@ -10,7 +10,8 @@ Type Parameters:
     V: Output value type
     T: Result of LCP type
 """
-from typing import TypeVar, Callable, Collection
+from typing import Callable, Collection, TypeVar
+
 from automata.SFST import SFST
 from operations.push_output import push_forward
 

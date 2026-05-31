@@ -9,7 +9,8 @@ Type Parameters:
     V: Output value type
     A: Accumulator type
 """
-from typing import TypeAlias, TypeVar, Callable, Mapping
+from typing import Callable, Mapping, TypeAlias, TypeVar
+
 from automata.SFST import SFST, assert_SFST
 
 Q = TypeVar('Q')

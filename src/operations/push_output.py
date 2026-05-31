@@ -10,7 +10,8 @@ Type Parameters:
     V: Output value type
     T: Result of LCP type
 """
-from typing import TypeVar, Callable
+from typing import Callable, TypeVar
+
 from automata.SFST import SFST
 
 Q = TypeVar('Q')

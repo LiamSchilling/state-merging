@@ -4,7 +4,8 @@ Type Parameters:
     Q: State type
     U: Input symbol type
 """
-from typing import TypeVar, Callable, Collection, Iterator, Sequence
+from typing import Callable, Collection, Iterator, Sequence, TypeVar
+
 from automata.DFA import DFA
 from automata.SFST import run
 from operations.learner import learn_by_state_merging

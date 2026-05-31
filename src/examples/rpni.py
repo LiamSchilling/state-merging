@@ -7,10 +7,10 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
 from itertools import count
+
+from algorithms.rpni import rpni
 from automata.DFA import assert_DFA
 from automata.SFST import run
-from algorithms.rpni import rpni
-
 
 input_set = {0, 1}
 

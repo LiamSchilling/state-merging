@@ -11,7 +11,7 @@ Type Parameters:
     A: Accumulator type
 """
 from dataclasses import dataclass
-from typing import TypeVar, Generic, Callable, Iterator, MutableMapping, Sequence
+from typing import Callable, Generic, Iterator, MutableMapping, Sequence, TypeVar
 
 Q = TypeVar('Q')
 U = TypeVar('U')

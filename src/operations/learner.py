@@ -14,11 +14,12 @@ Type Parameters:
     D: Output component of data pair type
     T: Result of LCP type
 """
-from typing import TypeVar, Callable, Collection, Iterator, Sequence
+from typing import Callable, Collection, Iterator, Sequence, TypeVar
+
 from automata.SFST import SFST
 from operations.build_PTT import build_PTT
 from operations.onwardize import onwardize_trim_acyclic
-from operations.state_merging import merge, iterate_merge
+from operations.state_merging import iterate_merge, merge
 
 Q = TypeVar('Q')
 U = TypeVar('U')

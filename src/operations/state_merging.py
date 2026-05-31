@@ -10,7 +10,8 @@ Type Parameters:
     V: Output value type
     T: Remainder after unification type
 """
-from typing import TypeVar, Any, Callable, Iterator, Reversible
+from typing import Any, Callable, Iterator, Reversible, TypeVar
+
 from automata.SFST import SFST
 from operations.push_output import push_outgoing
 

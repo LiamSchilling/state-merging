@@ -6,11 +6,11 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
-from typing import cast
 from itertools import count
-from automata.SFST import run, assert_SFST
-from algorithms.ostia import ostia
+from typing import cast
 
+from algorithms.ostia import ostia
+from automata.SFST import assert_SFST, run
 
 input_set = {'a', 'b'}
 

@@ -1,9 +1,61 @@
+[build-system]
+requires = ["setuptools>=45", "wheel"]
+build-backend = "setuptools.build_meta"
+
 [project]
 name = "state-merging"
 version = "0.1.0"
 description = "A generic implementation of state-merging inference algorithms for finite-state automata and transducers"
+readme = "README.md"
 requires-python = ">=3.10"
+authors = [
+    {name = "William (Liam) Schilling", email = "wschilli@andrew.cmu.edu"},
+]
+dependencies = [
+    "cmudict",
+]
+
+[project.optional-dependencies]
+dev = [
+    "black>=23.0",
+    "pylint>=2.0",
+    "isort>=5.0",
+    "mypy>=1.0",
+]
+test = [
+    "pytest>=7.0",
+    "pytest-cov>=4.0",
+]
+
+[project.urls]
+Repository = "https://github.com/user/state-merging"
 
 [tool.black]
 line-length = 100
 target-version = ['py310', 'py311']
+
+[tool.isort]
+profile = "black"
+line_length = 100
+skip_gitignore = true
+
+[tool.pylint.messages_control]
+disable = [
+    "C0111",  # missing-docstring
+    "R0913",  # too-many-arguments
+]
+
+[tool.pylint.format]
+max-line-length = 100
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = ["test_*.py", "*_test.py"]
+addopts = "-v --cov=src --cov-report=html --cov-report=term-missing"
+
+[tool.mypy]
+python_version = "3.10"
+warn_return_any = true
+warn_unused_configs = true
+disallow_untyped_defs = false
+ignore_missing_imports = true

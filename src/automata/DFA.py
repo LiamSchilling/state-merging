@@ -7,7 +7,8 @@ Type Parameters:
     Q: State type
     U: Input symbol type
 """
-from typing import TypeVar, TypeAlias
+from typing import TypeAlias, TypeVar
+
 from automata.SFST import SFST, assert_SFST
 
 Q = TypeVar('Q')

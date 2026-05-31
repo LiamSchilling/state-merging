@@ -12,7 +12,8 @@ Type Parameters:
     V: Output value type
     D: Output component of data pair type
 """
-from typing import TypeVar, Callable, Collection, Iterator, Sequence
+from typing import Callable, Collection, Iterator, Sequence, TypeVar
+
 from automata.SFST import SFST
 
 Q = TypeVar('Q')

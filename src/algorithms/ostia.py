@@ -5,10 +5,11 @@ Type Parameters:
     U: Input symbol type
     V: Output symbol type
 """
-from typing import TypeVar, Callable, Collection, Iterator, Sequence
-from util import lcp, ldiv, match, unify
+from typing import Callable, Collection, Iterator, Sequence, TypeVar
+
 from automata.SFST import SFST
 from operations.learner import learn_by_state_merging
+from util import lcp, ldiv, match, unify
 
 Q = TypeVar('Q')
 U = TypeVar('U')

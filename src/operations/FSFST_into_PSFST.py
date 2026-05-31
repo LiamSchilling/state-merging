@@ -10,6 +10,7 @@ Type Parameters:
     V: Output value type
 """
 from typing import TypeVar, cast
+
 from automata.FSFST import FSFST, outgoing_frequencies
 from automata.PSFST import PSFST
 
