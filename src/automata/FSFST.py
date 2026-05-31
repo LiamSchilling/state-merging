@@ -100,7 +100,7 @@ def ingoing_frequencies(fst: FSFST[Q, U, V]) -> Mapping[Q, int]:
     Returns:
         A mapping from each state in `state_set` to its total ingoing frequency.
     """
-    freqs = {q: 0 for q in fst.state_set}
+    freqs: dict[Q, int] = {q: 0 for q in fst.state_set}
     for q, (_, f) in fst.iter_ingoing():
         freqs[q] += f
     return freqs
@@ -118,7 +118,7 @@ def outgoing_frequencies(fst: FSFST[Q, U, V]) -> Mapping[Q, int]:
     Returns:
         A mapping from each state in `state_set` to its total outgoing frequency.
     """
-    freqs = {q: 0 for q in fst.state_set}
+    freqs: dict[Q, int] = {q: 0 for q in fst.state_set}
     for q, (_, f) in fst.iter_outgoing():
         freqs[q] += f
     return freqs
@@ -140,8 +140,8 @@ def assert_FSFST(fst: FSFST[Q, U, V]) -> None:
     for vf in fst.iter_outputs():
         assert_WithFreq(vf)
 
-    ingoing_freqs = ingoing_frequencies(fst)
-    outgoing_freqs = outgoing_frequencies(fst)
+    ingoing_freqs: Mapping[Q, int] = ingoing_frequencies(fst)
+    outgoing_freqs: Mapping[Q, int] = outgoing_frequencies(fst)
     for q in fst.state_set:
         assert ingoing_freqs[q] == outgoing_freqs[q], (
             f"flow conservation failed at state {q} with "

@@ -3,7 +3,7 @@
 Type Parameters:
     U: Sequence element type
 """
-from typing import TypeVar, Collection, Sequence
+from typing import Collection, Sequence, TypeVar
 
 U = TypeVar('U')
 

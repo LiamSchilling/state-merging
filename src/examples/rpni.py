@@ -9,11 +9,10 @@ sys.path.insert(0, str(Path(__file__).parent.parent))
 from itertools import count
 
 from algorithms.rpni import rpni
-from automata.DFA import assert_DFA
+from automata.DFA import DFA, assert_DFA
 from automata.SFST import run
 
-input_set = {0, 1}
-
+input_set: set[int] = {0, 1}
 
 pos_dataset: list[list[int]] = [
     [1],
@@ -29,7 +28,6 @@ pos_dataset: list[list[int]] = [
     [1, 0, 1, 0, 1]
 ]
 
-
 neg_dataset: list[list[int]] = [
     [],
     [0],
@@ -43,9 +41,8 @@ neg_dataset: list[list[int]] = [
     [0, 1, 1]
 ]
 
-
 if __name__ == "__main__":
-    dfa = rpni(
+    dfa: DFA[int, int] = rpni(
         input_set=input_set,
         pos_dataset=pos_dataset,
         neg_dataset=neg_dataset,

@@ -93,7 +93,15 @@ def learn_by_state_merging(
             "\n]\n"
         )
 
-    fst = build_PTT(input_set, dataset, epsilon, incr, insertion, contribute, state_supply)
+    fst: SFST[Q, U, V] = build_PTT(
+        input_set,
+        dataset,
+        epsilon,
+        incr,
+        insertion,
+        contribute,
+        state_supply
+    )
 
     if verbose:
         print(f"naively constructed PTT:\n{fst}\n")
@@ -134,9 +142,9 @@ def learn_by_state_merging(
     if verbose:
         print(f"FST after state-merging:\n{fst}\n")
 
-    fst = postprocess(fst)
+    fst_: SFST[Q, U, V_] = postprocess(fst)
 
     if verbose:
-        print(f"result FST of learning algorithm:\n{fst}")
+        print(f"result FST of learning algorithm:\n{fst_}")
 
-    return fst
+    return fst_

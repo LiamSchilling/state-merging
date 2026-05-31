@@ -9,7 +9,7 @@ Type Parameters:
     U: Input symbol type
     V: Output value type
 """
-from typing import TypeVar, cast
+from typing import Mapping, TypeVar, cast
 
 from automata.FSFST import FSFST, outgoing_frequencies
 from automata.PSFST import PSFST
@@ -36,17 +36,17 @@ def FSFST_into_PSFST(fst: FSFST[Q, U, V]) -> PSFST[Q, U, V]:
     Raises:
         ZeroDivisionError: If any state with an outgoing transition has outgoing frequency of 0.
     """
-    outgoing_freqs = outgoing_frequencies(fst)
+    outgoing_freqs: Mapping[Q, int] = outgoing_frequencies(fst)
 
     v, _ = fst.initial_output
     new_initial_output = v, 1.0
 
-    new_transitions = {
+    new_transitions: dict[tuple[Q, U], tuple[Q, tuple[V, float]]] = {
         (q, c): (q_, (v, f / outgoing_freqs[q]))
         for (q, c), (q_, (v, f)) in fst.transitions.items()
     }
 
-    new_final_outputs = {
+    new_final_outputs: dict[Q, tuple[V, float]] = {
         q: (v, f / outgoing_freqs[q])
         for q, (v, f) in fst.final_outputs.items()
     }

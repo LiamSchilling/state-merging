@@ -104,7 +104,7 @@ def build_PTT(
         A new SFST[Q, U, V] representing the prefix tree structure with accumulated values.
     """
     q0 = next(state_supply)
-    fst = SFST(
+    fst: SFST[Q, U, V] = SFST(
         state_set={q0},
         input_set=input_set,
         initial_state=q0,

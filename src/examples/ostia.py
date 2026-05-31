@@ -7,13 +7,12 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
 from itertools import count
-from typing import cast
+from typing import Sequence, cast
 
 from algorithms.ostia import ostia
-from automata.SFST import assert_SFST, run
+from automata.SFST import SFST, assert_SFST, run
 
-input_set = {'a', 'b'}
-
+input_set: set[str] = {'a', 'b'}
 
 dataset_list: list[tuple[list[str], list[int]]] = [
     (['a'], [1]),
@@ -24,7 +23,6 @@ dataset_list: list[tuple[list[str], list[int]]] = [
     (['a', 'b'], [0, 1])
 ]
 
-
 dataset_str: list[tuple[str, str]] = [
     ('a', '1'),
     ('b', '1'),
@@ -34,9 +32,8 @@ dataset_str: list[tuple[str, str]] = [
     ('ab', '01')
 ]
 
-
 if __name__ == "__main__":
-    fst = ostia(
+    fst_list: SFST[int, str, Sequence[int]] = ostia(
         input_set=input_set,
         dataset=dataset_list,
         epsilon=[],
@@ -47,10 +44,10 @@ if __name__ == "__main__":
         verbose=True
     )
 
-    assert_SFST(fst)
+    assert_SFST(fst_list)
 
     for input, output in dataset_list:
-        match run(fst, input, cast(list[int], []), lambda v1, v2: v1 + cast(list[int], v2)):
+        match run(fst_list, input, cast(list[int], []), lambda v1, v2: v1 + cast(list[int], v2)):
             case None:
                 assert False, \
                     f"learned FST rejected positive data {input, output}"
@@ -60,7 +57,7 @@ if __name__ == "__main__":
 
     print("\n" + "-" * 80 + "\n")
 
-    fst = ostia(
+    fst_str: SFST[int, str, Sequence[str]] = ostia(
         input_set=input_set,
         dataset=dataset_str,
         epsilon='',
@@ -71,10 +68,10 @@ if __name__ == "__main__":
         verbose=True
     )
 
-    assert_SFST(fst)
+    assert_SFST(fst_str)
 
     for input, output in dataset_str:
-        match run(fst, input, '', lambda v1, v2: v1 + cast(str, v2)):
+        match run(fst_str, input, '', lambda v1, v2: v1 + cast(str, v2)):
             case None:
                 assert False, \
                     f"learned FST rejected positive data {input, output}"

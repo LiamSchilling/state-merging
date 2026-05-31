@@ -94,7 +94,7 @@ def outgoing_probabilities(fst: PSFST[Q, U, V]) -> Mapping[Q, float]:
     Returns:
         A mapping from each state in `state_set` to its total outgoing probability.
     """
-    probs = {q: 0.0 for q in fst.state_set}
+    probs: dict[Q, float] = {q: 0.0 for q in fst.state_set}
     for q, (_, p) in fst.iter_outgoing():
         probs[q] += p
     return probs
