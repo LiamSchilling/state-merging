@@ -12,7 +12,7 @@ Type Parameters:
     V: Output value type
     D: Output component of data pair type
 """
-from typing import Callable, Collection, Iterator, Sequence, TypeVar
+from typing import Callable, Iterable, Iterator, Sequence, TypeVar
 
 from automata.SFST import SFST
 
@@ -73,7 +73,7 @@ def insert_data_PTT(
 
 def build_PTT(
     input_set: set[U],
-    dataset: Collection[tuple[Sequence[U], D]],
+    dataset: Iterable[tuple[Sequence[U], D]],
     epsilon: V,
     incr: Callable[[V], V],
     insertion: Callable[[D], V],

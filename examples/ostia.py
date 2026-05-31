@@ -4,7 +4,7 @@ so it can just as well be invoked for strings as for lists.
 import sys
 from pathlib import Path
 
-sys.path.insert(0, str(Path(__file__).parent.parent))
+sys.path.insert(0, str(Path(__file__).parent.parent / "src"))
 
 from itertools import count
 from typing import Sequence, cast
@@ -32,6 +32,7 @@ dataset_str: list[tuple[str, str]] = [
     ('ab', '01')
 ]
 
+
 if __name__ == "__main__":
     fst_list: SFST[int, str, Sequence[int]] = ostia(
         input_set=input_set,
@@ -39,7 +40,7 @@ if __name__ == "__main__":
         epsilon=[],
         concat=lambda v1, v2: cast(list[int], v1) + cast(list[int], v2),
         choose_transition=lambda _, trs: next(iter(trs)),
-        search_iter=lambda _, qs: iter(qs),
+        search_iter=lambda _, qs: qs,
         state_supply=count(),
         verbose=True
     )

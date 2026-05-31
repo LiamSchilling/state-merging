@@ -14,7 +14,7 @@ Type Parameters:
     D: Output component of data pair type
     T: Result of LCP type
 """
-from typing import Callable, Collection, Iterator, Sequence, TypeVar
+from typing import Callable, Collection, Iterable, Iterator, Sequence, TypeVar
 
 from automata.SFST import SFST
 from operations.build_PTT import build_PTT
@@ -31,7 +31,7 @@ T = TypeVar('T')
 
 def learn_by_state_merging(
     input_set: set[U],
-    dataset: Collection[tuple[Sequence[U], D]],
+    dataset: Iterable[tuple[Sequence[U], D]],
     epsilon: V,
     incr: Callable[[V], V],
     insertion: Callable[[D], V],
@@ -44,7 +44,7 @@ def learn_by_state_merging(
     is_epsilon: Callable[[T], bool],
     check_merge: Callable[[SFST[Q, U, V]], bool],
     choose_transition: Callable[[SFST[Q, U, V], set[Q]], Q],
-    search_iter: Callable[[SFST[Q, U, V], set[Q]], Iterator[Q]],
+    search_iter: Callable[[SFST[Q, U, V], set[Q]], Iterable[Q]],
     state_supply: Iterator[Q],
     postprocess: Callable[[SFST[Q, U, V]], SFST[Q, U, V_]],
     verbose: bool = False

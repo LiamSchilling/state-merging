@@ -36,7 +36,7 @@ def lcp(us: Collection[Sequence[U]], epsilon: Sequence[U]) -> Sequence[U]:
             some_u = u
             if i < len(u):
                 c_: tuple[U] = (u[i],)
-                if c == None:
+                if c is None:
                     c = c_
                 elif c != c_:
                     success = False
@@ -44,11 +44,11 @@ def lcp(us: Collection[Sequence[U]], epsilon: Sequence[U]) -> Sequence[U]:
             else:
                 success = False
                 break
-        if not success or c == None:
+        if not success or c is None:
             break
         i += 1
 
-    if some_u != None:
+    if some_u is not None:
         return some_u[:i]
     else:
         return epsilon

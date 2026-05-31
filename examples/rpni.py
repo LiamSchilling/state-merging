@@ -4,7 +4,7 @@
 import sys
 from pathlib import Path
 
-sys.path.insert(0, str(Path(__file__).parent.parent))
+sys.path.insert(0, str(Path(__file__).parent.parent / "src"))
 
 from itertools import count
 
@@ -41,13 +41,14 @@ neg_dataset: list[list[int]] = [
     [0, 1, 1]
 ]
 
+
 if __name__ == "__main__":
     dfa: DFA[int, int] = rpni(
         input_set=input_set,
         pos_dataset=pos_dataset,
         neg_dataset=neg_dataset,
         choose_transition=lambda _, trs: next(iter(trs)),
-        search_iter=lambda _, qs: iter(qs),
+        search_iter=lambda _, qs: qs,
         state_supply=count(),
         verbose=True
     )
@@ -55,9 +56,9 @@ if __name__ == "__main__":
     assert_DFA(dfa)
 
     for d in pos_dataset:
-        assert run(dfa, d, None, lambda none, _: none) != None, \
+        assert run(dfa, d, None, lambda none, _: none) is not None, \
             f"learned DFA rejected positive data {d}"
 
     for d in neg_dataset:
-        assert run(dfa, d, None, lambda none, _: none) == None, \
+        assert run(dfa, d, None, lambda none, _: none) is None, \
             f"learned DFA accepted negative data {d}"

@@ -10,7 +10,7 @@ Type Parameters:
     V: Output value type
     T: Remainder after unification type
 """
-from typing import Any, Callable, Iterator, Reversible, TypeVar
+from typing import Any, Callable, Iterable, Reversible, TypeVar
 
 from automata.SFST import SFST
 from operations.push_output import push_outgoing
@@ -242,7 +242,7 @@ def iterate_merge(
     fst: SFST[Q, U, V],
     try_merge: Callable[[SFST[Q, U, V], Q, Q, tuple[Q, U] | None], bool],
     choose_transition: Callable[[SFST[Q, U, V], set[Q]], Q],
-    search_iter: Callable[[SFST[Q, U, V], set[Q]], Iterator[Q]],
+    search_iter: Callable[[SFST[Q, U, V], set[Q]], Iterable[Q]],
     verbose : bool = False
 ) -> SFST[Q, U, V]:
     """Iteratively merge states in an FST using customizable selection and search strategies.

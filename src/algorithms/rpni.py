@@ -4,7 +4,7 @@ Type Parameters:
     Q: State type
     U: Input symbol type
 """
-from typing import Callable, Collection, Iterator, Sequence, TypeVar
+from typing import Callable, Iterable, Iterator, Sequence, TypeVar
 
 from automata.DFA import DFA
 from automata.SFST import run
@@ -14,7 +14,7 @@ Q = TypeVar('Q')
 U = TypeVar('U')
 
 
-def check_merge(dfa: DFA[Q, U], neg_dataset: Collection[Sequence[U]]) -> bool:
+def check_merge(dfa: DFA[Q, U], neg_dataset: Iterable[Sequence[U]]) -> bool:
     """Verify that a DFA rejects all negative examples.
 
     Checks whether the given DFA correctly rejects every sequence in the negative dataset
@@ -27,15 +27,15 @@ def check_merge(dfa: DFA[Q, U], neg_dataset: Collection[Sequence[U]]) -> bool:
     Returns:
         True if the DFA rejects all negative examples, False otherwise.
     """
-    return all(run(dfa, u, None, lambda none, _: none) == None for u in neg_dataset)
+    return all(run(dfa, u, None, lambda none, _: none) is None for u in neg_dataset)
 
 
 def rpni(
     input_set: set[U],
-    pos_dataset: Collection[Sequence[U]],
-    neg_dataset: Collection[Sequence[U]],
+    pos_dataset: Iterable[Sequence[U]],
+    neg_dataset: Iterable[Sequence[U]],
     choose_transition: Callable[[DFA[Q, U], set[Q]], Q],
-    search_iter: Callable[[DFA[Q, U], set[Q]], Iterator[Q]],
+    search_iter: Callable[[DFA[Q, U], set[Q]], Iterable[Q]],
     state_supply: Iterator[Q],
     verbose: bool = False
 ) -> DFA[Q, U]:

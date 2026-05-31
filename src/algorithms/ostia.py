@@ -5,7 +5,7 @@ Type Parameters:
     U: Input symbol type
     V: Output symbol type
 """
-from typing import Callable, Collection, Iterator, Sequence, TypeVar
+from typing import Callable, Iterable, Iterator, Sequence, TypeVar
 
 from automata.SFST import SFST
 from operations.learner import learn_by_state_merging
@@ -18,11 +18,11 @@ V = TypeVar('V')
 
 def ostia(
     input_set: set[U],
-    dataset: Collection[tuple[Sequence[U], Sequence[V]]],
+    dataset: Iterable[tuple[Sequence[U], Sequence[V]]],
     epsilon: Sequence[V],
     concat: Callable[[Sequence[V], Sequence[V]], Sequence[V]],
     choose_transition: Callable[[SFST[Q, U, Sequence[V]], set[Q]], Q],
-    search_iter: Callable[[SFST[Q, U, Sequence[V]], set[Q]], Iterator[Q]],
+    search_iter: Callable[[SFST[Q, U, Sequence[V]], set[Q]], Iterable[Q]],
     state_supply: Iterator[Q],
     verbose: bool = False
 ) -> SFST[Q, U, Sequence[V]]:
