@@ -8,7 +8,7 @@ from typing import Callable, Iterable, Iterator, Sequence, TypeVar
 
 from state_merging.automata.DFA import DFA
 from state_merging.automata.SFST import run
-from state_merging.operations.learner import learn_by_state_merging
+from state_merging.operations.learner import MergeResults, learn_by_state_merging
 
 Q = TypeVar('Q')
 U = TypeVar('U')
@@ -38,7 +38,7 @@ def rpni(
     search_iter: Callable[[DFA[Q, U], set[Q]], Iterable[Q]],
     state_supply: Iterator[Q],
     verbose: bool = False
-) -> DFA[Q, U]:
+) -> tuple[DFA[Q, U], MergeResults]:
     """Learn a DFA from positive and negative examples using RPNI.
 
     Constructs a minimal DFA that accepts all strings in pos_dataset and rejects all
@@ -66,6 +66,7 @@ def rpni(
     return learn_by_state_merging(
         input_set=input_set,
         dataset=[(u, None) for u in pos_dataset],
+        data_len=lambda _: 0,
         epsilon=None,
         incr=lambda none: none,
         insertion=lambda none: none,

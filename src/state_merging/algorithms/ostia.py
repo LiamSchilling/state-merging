@@ -8,7 +8,7 @@ Type Parameters:
 from typing import Callable, Iterable, Iterator, Sequence, TypeVar
 
 from state_merging.automata.SFST import SFST
-from state_merging.operations.learner import learn_by_state_merging
+from state_merging.operations.learner import MergeResults, learn_by_state_merging
 from state_merging.util import lcp, ldiv, match, unify
 
 Q = TypeVar('Q')
@@ -25,7 +25,7 @@ def ostia(
     search_iter: Callable[[SFST[Q, U, Sequence[V]], set[Q]], Iterable[Q]],
     state_supply: Iterator[Q],
     verbose: bool = False
-) -> SFST[Q, U, Sequence[V]]:
+) -> tuple[SFST[Q, U, Sequence[V]], MergeResults]:
     """Learn an SFST from input-output pairs using OSTIA.
 
     Constructs a minimal subsequential finite-state transducer that maps input sequences
@@ -49,6 +49,7 @@ def ostia(
     return learn_by_state_merging(
         input_set=input_set,
         dataset=dataset,
+        data_len=len,
         epsilon=epsilon,
         incr=lambda v: v,
         insertion=lambda v: v,

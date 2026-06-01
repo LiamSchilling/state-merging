@@ -12,6 +12,7 @@ Type Parameters:
     V: Output value type
     D: Output component of data pair type
 """
+from dataclasses import dataclass, field
 from typing import Callable, Iterable, Iterator, Sequence, TypeVar
 
 from state_merging.automata.SFST import SFST
@@ -22,9 +23,20 @@ V = TypeVar('V')
 D = TypeVar('D')
 
 
+@dataclass
+class PTTResults:
+    """Results of building a prefix tree transducer."""
+    sample_count: int = field(default=0)
+    sample_input_size: int = field(default=0)
+    sample_output_size: int = field(default=0)
+    ptt_state_count: int = field(default=0)
+
+
 def insert_data_PTT(
     fst: SFST[Q, U, V],
+    results: PTTResults,
     data: tuple[Sequence[U], D],
+    data_len: Callable[[D], int],
     epsilon: V,
     incr: Callable[[V], V],
     insertion: Callable[[D], V],
@@ -52,6 +64,10 @@ def insert_data_PTT(
     """
     u, d = data
 
+    results.sample_count += 1
+    results.sample_input_size += len(u)
+    results.sample_output_size += data_len(d)
+
     fst.initial_output = incr(fst.initial_output)
 
     q = fst.initial_state
@@ -61,6 +77,7 @@ def insert_data_PTT(
         else:
             q_, v = next(state_supply), epsilon
             fst.state_set.add(q_)
+            results.ptt_state_count += 1
         fst.transitions[(q, c)] = q_, incr(v)
         q = q_
 
@@ -74,12 +91,13 @@ def insert_data_PTT(
 def build_PTT(
     input_set: set[U],
     dataset: Iterable[tuple[Sequence[U], D]],
+    data_len: Callable[[D], int],
     epsilon: V,
     incr: Callable[[V], V],
     insertion: Callable[[D], V],
     contribute: Callable[[V, D], V],
     state_supply: Iterator[Q]
-) -> SFST[Q, U, V]:
+) -> tuple[SFST[Q, U, V], PTTResults]:
     """Build a prefix tree transducer from a collection of (sequence, data) pairs.
 
     Constructs a trie-structured transducer that stores data values at terminal states.
@@ -113,7 +131,9 @@ def build_PTT(
         final_outputs={}
     )
 
-    for data in dataset:
-        insert_data_PTT(fst, data, epsilon, incr, insertion, contribute, state_supply)
+    results = PTTResults()
 
-    return fst
+    for data in dataset:
+        insert_data_PTT(fst, results, data, data_len, epsilon, incr, insertion, contribute, state_supply)
+
+    return fst, results

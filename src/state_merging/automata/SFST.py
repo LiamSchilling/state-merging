@@ -68,7 +68,7 @@ class SFST(Generic[Q, U, V]):
     initial_output: V
     final_outputs: MutableMapping[Q, V]
 
-    def __copy__(self):
+    def __copy__(self) -> 'SFST[Q, U, V]':
         return SFST(
             state_set=set(self.state_set),
             input_set=set(self.input_set),

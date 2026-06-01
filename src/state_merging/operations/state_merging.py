@@ -244,7 +244,7 @@ def iterate_merge(
     choose_transition: Callable[[SFST[Q, U, V], set[Q]], Q],
     search_iter: Callable[[SFST[Q, U, V], set[Q]], Iterable[Q]],
     verbose : bool = False
-) -> SFST[Q, U, V]:
+) -> None:
     """Iteratively merge states in an FST using customizable selection and search strategies.
 
     This forms the outer loop of state merging algorithms like RPNI, ALERGIA, OSTIA, and APTI2.
@@ -258,9 +258,6 @@ def iterate_merge(
         search_iter: Function that yields candidate states from the promoted set to try merging
                      with.
         verbose: Flag for printing debugging information.
-
-    Returns:
-        A new SFST with states merged. The original FST is not modified.
     """
     promoted: set[Q] = set()
     frontier: dict[Q, tuple[Q, U] | None] = {fst.initial_state : None}
@@ -289,5 +286,3 @@ def iterate_merge(
             for c, q_, _ in fst.iter_outgoing_states_from(q)
             if q_ not in promoted
         }
-
-    return fst

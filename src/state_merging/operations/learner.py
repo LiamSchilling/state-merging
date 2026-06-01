@@ -14,10 +14,11 @@ Type Parameters:
     D: Output component of data pair type
     T: Result of LCP type
 """
+from dataclasses import dataclass, field
 from typing import Callable, Collection, Iterable, Iterator, Sequence, TypeVar
 
 from state_merging.automata.SFST import SFST
-from state_merging.operations.build_PTT import build_PTT
+from state_merging.operations.build_PTT import PTTResults, build_PTT
 from state_merging.operations.onwardize import onwardize_trim_acyclic
 from state_merging.operations.state_merging import iterate_merge, merge
 
@@ -29,9 +30,22 @@ D = TypeVar('D')
 T = TypeVar('T')
 
 
+@dataclass
+class MergeResults(PTTResults):
+    """Results of a state-merging learner."""
+    merged_state_count: int = field(default=0)
+    result_state_count: int = field(default=0)
+
+    @classmethod
+    def from_ptt_results(cls, ptt_results: PTTResults) -> 'MergeResults':
+        """Create MergeResults from PTTResults with default values for merge fields."""
+        return cls(**vars(ptt_results))
+
+
 def learn_by_state_merging(
     input_set: set[U],
     dataset: Iterable[tuple[Sequence[U], D]],
+    data_len: Callable[[D], int],
     epsilon: V,
     incr: Callable[[V], V],
     insertion: Callable[[D], V],
@@ -48,7 +62,7 @@ def learn_by_state_merging(
     state_supply: Iterator[Q],
     postprocess: Callable[[SFST[Q, U, V]], SFST[Q, U, V_]],
     verbose: bool = False
-) -> SFST[Q, U, V_]:
+) -> tuple[SFST[Q, U, V_], MergeResults]:
     """Learn an SFST from training data through prefix-tree construction and state merging.
 
     This is the main entry point for learning FSTs. The algorithm follows the ALERGIA/APTI2
@@ -88,20 +102,24 @@ def learn_by_state_merging(
     """
     if verbose:
         print(
-            f"learning from the following positive data by state-merging: [\n\t" +
+            "learning from the following positive data by state-merging: [\n\t" +
             "\n\t".join(f"{u}, {d}" for u, d in dataset) +
             "\n]\n"
         )
 
-    fst: SFST[Q, U, V] = build_PTT(
+    fst: SFST[Q, U, V]
+    fst, ptt_results = build_PTT(
         input_set,
         dataset,
+        data_len,
         epsilon,
         incr,
         insertion,
         contribute,
         state_supply
     )
+
+    results = MergeResults.from_ptt_results(ptt_results)
 
     if verbose:
         print(f"naively constructed PTT:\n{fst}\n")
@@ -137,14 +155,17 @@ def learn_by_state_merging(
                     undo_merge()
                     return False
 
-    fst = iterate_merge(fst, try_merge, choose_transition, search_iter, verbose=verbose)
+    iterate_merge(fst, try_merge, choose_transition, search_iter, verbose=verbose)
+    results.merged_state_count = len(fst.state_set)
 
     if verbose:
         print(f"FST after state-merging:\n{fst}\n")
 
     fst_: SFST[Q, U, V_] = postprocess(fst)
+    results.result_state_count = len(fst_.state_set)
 
     if verbose:
-        print(f"result FST of learning algorithm:\n{fst_}")
+        print(f"result FST of learning algorithm:\n{fst_}\n")
+        print(f"collected meta results:\n{results}")
 
-    return fst_
+    return fst_, results

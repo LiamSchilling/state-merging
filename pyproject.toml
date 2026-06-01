@@ -19,6 +19,7 @@ authors = [
 ]
 dependencies = [
     "cmudict",
+    "numpy>=1.20",
 ]
 
 [project.optional-dependencies]
@@ -30,6 +31,7 @@ dev = [
     "jupyter>=1.0",
     "ipython>=8.0",
     "jupyterlab>=4.0",
+    "matplotlib>=3.0",
 ]
 test = [
     "pytest>=7.0",
