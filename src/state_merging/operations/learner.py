@@ -16,10 +16,10 @@ Type Parameters:
 """
 from typing import Callable, Collection, Iterable, Iterator, Sequence, TypeVar
 
-from automata.SFST import SFST
-from operations.build_PTT import build_PTT
-from operations.onwardize import onwardize_trim_acyclic
-from operations.state_merging import iterate_merge, merge
+from state_merging.automata.SFST import SFST
+from state_merging.operations.build_PTT import build_PTT
+from state_merging.operations.onwardize import onwardize_trim_acyclic
+from state_merging.operations.state_merging import iterate_merge, merge
 
 Q = TypeVar('Q')
 U = TypeVar('U')

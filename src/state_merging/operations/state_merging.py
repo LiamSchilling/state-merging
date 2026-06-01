@@ -12,8 +12,8 @@ Type Parameters:
 """
 from typing import Any, Callable, Iterable, Reversible, TypeVar
 
-from automata.SFST import SFST
-from operations.push_output import push_outgoing
+from state_merging.automata.SFST import SFST
+from state_merging.operations.push_output import push_outgoing
 
 Q = TypeVar('Q')
 U = TypeVar('U')

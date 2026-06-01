@@ -7,9 +7,9 @@ Type Parameters:
 """
 from typing import Callable, Iterable, Iterator, Sequence, TypeVar
 
-from automata.SFST import SFST
-from operations.learner import learn_by_state_merging
-from util import lcp, ldiv, match, unify
+from state_merging.automata.SFST import SFST
+from state_merging.operations.learner import learn_by_state_merging
+from state_merging.util import lcp, ldiv, match, unify
 
 Q = TypeVar('Q')
 U = TypeVar('U')

@@ -6,9 +6,9 @@ Type Parameters:
 """
 from typing import Callable, Iterable, Iterator, Sequence, TypeVar
 
-from automata.DFA import DFA
-from automata.SFST import run
-from operations.learner import learn_by_state_merging
+from state_merging.automata.DFA import DFA
+from state_merging.automata.SFST import run
+from state_merging.operations.learner import learn_by_state_merging
 
 Q = TypeVar('Q')
 U = TypeVar('U')

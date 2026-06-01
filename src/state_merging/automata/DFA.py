@@ -9,7 +9,7 @@ Type Parameters:
 """
 from typing import TypeAlias, TypeVar
 
-from automata.SFST import SFST, assert_SFST
+from state_merging.automata.SFST import SFST, assert_SFST
 
 Q = TypeVar('Q')
 U = TypeVar('U')

@@ -12,7 +12,7 @@ Type Parameters:
 """
 from typing import Callable, TypeVar
 
-from automata.SFST import SFST
+from state_merging.automata.SFST import SFST
 
 Q = TypeVar('Q')
 U = TypeVar('U')

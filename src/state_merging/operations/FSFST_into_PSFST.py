@@ -11,8 +11,8 @@ Type Parameters:
 """
 from typing import Mapping, TypeVar, cast
 
-from automata.FSFST import FSFST, outgoing_frequencies
-from automata.PSFST import PSFST, WithProb
+from state_merging.automata.FSFST import FSFST, outgoing_frequencies
+from state_merging.automata.PSFST import PSFST, WithProb
 
 Q = TypeVar('Q')
 U = TypeVar('U')

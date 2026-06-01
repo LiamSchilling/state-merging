@@ -12,8 +12,8 @@ Type Parameters:
 """
 from typing import Callable, Collection, TypeVar
 
-from automata.SFST import SFST
-from operations.push_output import push_forward
+from state_merging.automata.SFST import SFST
+from state_merging.operations.push_output import push_forward
 
 Q = TypeVar('Q')
 U = TypeVar('U')
