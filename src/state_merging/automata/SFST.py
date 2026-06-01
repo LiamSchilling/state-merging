@@ -11,7 +11,7 @@ Type Parameters:
     A: Accumulator type
 """
 from dataclasses import dataclass
-from typing import Callable, Generic, Iterator, MutableMapping, Sequence, TypeVar
+from typing import Callable, Generic, Iterator, Mapping, MutableMapping, Sequence, TypeVar
 
 Q = TypeVar('Q')
 U = TypeVar('U')
@@ -183,6 +183,30 @@ class SFST(Generic[Q, U, V]):
             yield from self.iter_accessible_states_from(q_, ignore)
         ignore.remove(q)
         yield q
+
+    def ingoing_transitions(self) -> Mapping[Q, list[tuple[Q, U]]]:
+        """Build a cached mapping of incoming transitions for all states.
+
+        Constructs a reverse mapping from the transitions dictionary, grouping all
+        incoming transitions by their destination state. This avoids repeatedly
+        scanning all transitions when multiple operations need to access ingoing
+        edges, providing a significant efficiency improvement for operations like
+        push_forward and push_backward.
+
+        Returns:
+            A mapping from each state to a list of (source_state, input_symbol) tuples
+            representing all transitions that end at that state.
+
+        Example:
+            >>> fst = SFST(...)  # transducer with transitions {(0, 'a'): (1, 1), (2, 'b'): (1, 2)}
+            >>> ingoing = fst.ingoing_transitions()
+            >>> ingoing[1]  # transitions ending at state 1
+            [(0, 'a'), (2, 'b')]
+        """
+        trs: dict[Q, list[tuple[Q, U]]] = {q: [] for q in self.state_set}
+        for (q, c), (q_, _) in self.transitions.items():
+            trs[q_].append((q, c))
+        return trs
 
 
 def assert_SFST(fst: SFST[Q, U, V]) -> None:

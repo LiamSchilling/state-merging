@@ -10,7 +10,7 @@ Type Parameters:
     V: Output value type
     T: Result of LCP type
 """
-from typing import Callable, Collection, TypeVar
+from typing import Callable, Collection, Mapping, TypeVar
 
 from state_merging.automata.SFST import SFST
 from state_merging.operations.push_output import push_forward
@@ -42,6 +42,7 @@ def onwardize_trim_acyclic(
         lcp: Function to compute the longest common prefix from a set of outputs.
              Returns the longest prefix common to all outputs in the set.
     """
+    ingoing_trs: Mapping[Q, list[tuple[Q, U]]] = fst.ingoing_transitions()
     for q in fst.iter_accessible_states_from(fst.initial_state, set()):
         pref = lcp(list(fst.iter_outgoing_from(q)))
-        push_forward(fst, q, pref, rmul, ldiv)
+        push_forward(fst, q, pref, rmul, ldiv, ingoing_trs)

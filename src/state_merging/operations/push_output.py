@@ -10,7 +10,7 @@ Type Parameters:
     V: Output value type
     T: Result of LCP type
 """
-from typing import Callable, TypeVar
+from typing import Callable, Iterable, Mapping, TypeVar
 
 from state_merging.automata.SFST import SFST
 
@@ -22,9 +22,10 @@ T = TypeVar('T')
 
 def push_ingoing(
     fst: SFST[Q, U, V],
-    q: Q,
+    q_: Q,
     elem: T,
-    rop: Callable[[V, T], V]
+    rop: Callable[[V, T], V],
+    ingoing_trs: Mapping[Q, Iterable[tuple[Q, U]]]
 ) -> None:
     """Apply an operation to all incoming transitions to a state.
 
@@ -33,16 +34,20 @@ def push_ingoing(
 
     Args:
         fst: The SFST to modify (modified in-place).
-        q: The target state.
+        q_: The target state.
         elem: The element to apply to incoming transitions.
         rop: Binary right operation to combine with transition outputs.
+        ingoing_trs: Cached mapping of states to their incoming transitions
+                     (source state, input symbol).
+                     Precomputing this avoids repeatedly scanning all transitions
+                     for efficiency.
     """
-    if q == fst.initial_state:
+    if q_ == fst.initial_state:
         fst.initial_output = rop(fst.initial_output, elem)
 
-    for key, (q_, v) in fst.transitions.items():
-        if q == q_:
-            fst.transitions[key] = q_, rop(v, elem)
+    for q, c in ingoing_trs[q_]:
+        _, v = fst.transitions[(q, c)]
+        fst.transitions[(q, c)] = q_, rop(v, elem)
 
 
 def push_outgoing(
@@ -75,7 +80,8 @@ def push_forward(
     q: Q,
     pref: T,
     rmul: Callable[[V, T], V],
-    ldiv: Callable[[T, V], V]
+    ldiv: Callable[[T, V], V],
+    ingoing_trs: Mapping[Q, Iterable[tuple[Q, U]]]
 ) -> None:
     """Push a prefix forward from a state through the FST.
 
@@ -89,8 +95,9 @@ def push_forward(
         pref: The prefix to push forward (typically the LCP of outgoing outputs).
         rmul: Binary right multiplication operation to combine prefix with outputs.
         ldiv: Binary left division to remove prefix from outputs.
+        ingoing_trs: Cached mapping of states to their incoming transitions for efficiency.
     """
-    push_ingoing(fst, q, pref, rmul)
+    push_ingoing(fst, q, pref, rmul, ingoing_trs)
     push_outgoing(fst, q, pref, ldiv)
 
 
@@ -99,7 +106,8 @@ def push_backward(
     q: Q,
     suff: T,
     lmul: Callable[[T, V], V],
-    rdiv: Callable[[V, T], V]
+    rdiv: Callable[[V, T], V],
+    ingoing_trs: Mapping[Q, Iterable[tuple[Q, U]]]
 ) -> None:
     """Push a suffix backward from a state through the FST.
 
@@ -113,6 +121,7 @@ def push_backward(
         suff: The suffix to push backward (typically the LCP of incoming outputs).
         lmul: Binary left multiplication to combine suffix with outputs.
         rdiv: Binary right division to remove suffix from outputs.
+        ingoing_trs: Cached mapping of states to their incoming transitions for efficiency.
     """
     push_outgoing(fst, q, suff, lmul)
-    push_ingoing(fst, q, suff, rdiv)
+    push_ingoing(fst, q, suff, rdiv, ingoing_trs)
