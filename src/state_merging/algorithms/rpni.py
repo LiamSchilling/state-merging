@@ -37,10 +37,10 @@ def rpni(
     choose_transition: Callable[[DFA[Q, U], Set[Q]], Q],
     search_iter: Callable[[DFA[Q, U], Set[Q]], Iterable[Q]],
     state_supply: Iterator[Q],
-    empty_fst_state_set: MutableSet[Q],
+    empty_state_set: MutableSet[Q],
     empty_transition_mapping: MutableMapping[tuple[Q, U], tuple[Q, None]],
     empty_final_output_mapping: MutableMapping[Q, None],
-    make_empty_visited_state_set: Callable[[MutableSet[Q]], MutableSet[Q]],
+    make_empty_state_set: Callable[[MutableSet[Q]], MutableSet[Q]],
     make_default_populated_mapping: Callable[[MutableSet[Q]], MutableMapping[Q, list[tuple[Q, U]]]],
     verbose: bool = False
 ) -> tuple[DFA[Q, U], MergeResults]:
@@ -56,12 +56,11 @@ def rpni(
         choose_transition: Heuristic for selecting which frontier transition to process.
         search_iter: Heuristic for iterating through promoted states to try merging with.
         state_supply: Iterator providing fresh state identifiers as needed.
-        empty_fst_state_set: An empty set for FST states. States are guaranteed to be
-                            inserted in the order provided by state_supply.
+        empty_state_set: An empty set for FST states.
         empty_transition_mapping: An empty mapping for transitions.
         empty_final_output_mapping: An empty mapping for final outputs.
-        make_empty_visited_state_set: Factory creating an empty set for visited states during
-                                      onwardization. Takes the total state set as argument.
+        make_empty_state_set: Factory creating an empty set for visited states during
+                              onwardization. Takes the total state set as argument.
         make_default_populated_mapping: Factory creating a mapping from states to incoming
                                         transition lists.
         verbose: Whether to print progress information during learning.
@@ -94,10 +93,10 @@ def rpni(
         choose_transition=choose_transition,
         search_iter=search_iter,
         state_supply=state_supply,
-        empty_fst_state_set=empty_fst_state_set,
+        empty_state_set=empty_state_set,
         empty_transition_mapping=empty_transition_mapping,
         empty_final_output_mapping=empty_final_output_mapping,
-        make_empty_visited_state_set=make_empty_visited_state_set,
+        make_empty_state_set=make_empty_state_set,
         make_default_populated_mapping=make_default_populated_mapping,
         postprocess=lambda dfa: dfa,
         verbose=verbose
