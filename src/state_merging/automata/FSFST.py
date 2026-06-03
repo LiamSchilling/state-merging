@@ -9,7 +9,7 @@ Type Parameters:
     V: Output value type
     A: Accumulator type
 """
-from typing import Callable, Mapping, TypeAlias, TypeVar
+from typing import Callable, MutableMapping, TypeAlias, TypeVar
 
 from state_merging.automata.SFST import SFST, assert_SFST
 
@@ -87,41 +87,42 @@ Example:
 """
 
 
-def ingoing_frequencies(fst: FSFST[Q, U, V]) -> Mapping[Q, int]:
-    """Compute the total ingoing frequency for all states.
+def accumulate_ingoing_frequencies(fst: FSFST[Q, U, V], freqs: MutableMapping[Q, int]) -> None:
+    """Accumulate the total ingoing frequency for all states.
 
-    For each state, sums:
+    For each state, adds to the accumulated frequencies:
     - The frequency component of `initial_output` (for the initial state)
     - The frequency components of all transitions `(q', u) -> q` ending at that state
 
+    The caller is responsible for initializing the mapping with the appropriate values
+    before calling this method.
+
     Args:
         fst: The FSFST to analyze.
-
-    Returns:
-        A mapping from each state in `state_set` to its total ingoing frequency.
+        freqs: A mutable mapping from states to accumulated frequencies. Will be
+               modified in-place; each call accumulates ingoing frequency values
+               to freqs[q] for all states q.
     """
-    freqs: dict[Q, int] = {q: 0 for q in fst.state_set}
     for q, (_, f) in fst.iter_ingoing():
         freqs[q] += f
-    return freqs
 
 
-def outgoing_frequencies(fst: FSFST[Q, U, V]) -> Mapping[Q, int]:
-    """Compute the total outgoing frequency from all states.
+def accumulate_outgoing_frequencies(fst: FSFST[Q, U, V], freqs: MutableMapping[Q, int]) -> None:
+    """Accumulate the total outgoing frequency from all states.
 
-    Sums the frequency components of all transitions from state `q` and
-    the frequency component of the final output for `q` (if defined).
+    Adds the frequency components of all transitions from each state and
+    the frequency component of the final output (if defined) to the provided
+    mapping. The caller is responsible for initializing the mapping with the
+    appropriate values before calling this method.
 
     Args:
         fst: The FSFST to analyze.
-
-    Returns:
-        A mapping from each state in `state_set` to its total outgoing frequency.
+        freqs: A mutable mapping from states to accumulated frequencies. Will be
+               modified in-place; each call accumulates outgoing frequency values
+               to freqs[q] for all states q.
     """
-    freqs: dict[Q, int] = {q: 0 for q in fst.state_set}
     for q, (_, f) in fst.iter_outgoing():
         freqs[q] += f
-    return freqs
 
 
 def assert_FSFST(fst: FSFST[Q, U, V]) -> None:
@@ -140,8 +141,8 @@ def assert_FSFST(fst: FSFST[Q, U, V]) -> None:
     for vf in fst.iter_outputs():
         assert_WithFreq(vf)
 
-    ingoing_freqs: Mapping[Q, int] = ingoing_frequencies(fst)
-    outgoing_freqs: Mapping[Q, int] = outgoing_frequencies(fst)
+    accumulate_ingoing_frequencies(fst, ingoing_freqs := {q: 0 for q in fst.state_set})
+    accumulate_outgoing_frequencies(fst, outgoing_freqs := {q: 0 for q in fst.state_set})
     for q in fst.state_set:
         assert ingoing_freqs[q] == outgoing_freqs[q], (
             f"flow conservation failed at state {q} with "

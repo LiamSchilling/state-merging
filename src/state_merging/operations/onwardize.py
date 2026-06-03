@@ -10,7 +10,7 @@ Type Parameters:
     V: Output value type
     T: Result of LCP type
 """
-from typing import Callable, Collection, Mapping, TypeVar
+from typing import Callable, Collection, MutableMapping, MutableSet, TypeVar
 
 from state_merging.automata.SFST import SFST
 from state_merging.operations.push_output import push_forward
@@ -25,7 +25,9 @@ def onwardize_trim_acyclic(
     fst: SFST[Q, U, V],
     rmul: Callable[[V, T], V],
     ldiv: Callable[[T, V], V],
-    lcp: Callable[[Collection[V]], T]
+    lcp: Callable[[Collection[V]], T],
+    empty_set: MutableSet[Q],
+    default_populated_mapping: MutableMapping[Q, list[tuple[Q, U]]]
 ) -> None:
     """Onwardize a trim, acyclic SFST by pushing outputs forward through states.
 
@@ -33,16 +35,23 @@ def onwardize_trim_acyclic(
     at each state and pushing that prefix forward to transitions entering the state.
     The states must be processed in a reverse topological order.
 
+    The caller must provide the mapping implementations because constructing them internally
+    would require the function to specialize on concrete types, breaking its generic nature.
+
     Args:
         fst: The trim, acyclic SFST to onwardize (modified in-place).
-        mul: Binary multiplication operation for outputs (e.g., concatenation).
-             Combines prefix with existing output: mul(prefix, output).
+        rmul: Binary right multiplication operation for outputs (e.g., concatenation).
+              Combines existing output with prefix: rmul(output, prefix).
         ldiv: Binary left division operation for outputs (e.g., string difference).
               Removes prefix from output: ldiv(prefix, output).
         lcp: Function to compute the longest common prefix from a set of outputs.
              Returns the longest prefix common to all outputs in the set.
+        default_populated_mapping: A pre-initialized mutable mapping with empty lists
+                                   for each state in fst.state_set. This mapping will be
+                                   populated with incoming transitions and is used during
+                                   onwardization. The caller is responsible for initialization.
     """
-    ingoing_trs: Mapping[Q, list[tuple[Q, U]]] = fst.ingoing_transitions()
-    for q in fst.iter_accessible_states_from(fst.initial_state, set()):
+    fst.accumulate_ingoing_transitions(ingoing_trs := default_populated_mapping)
+    for q in fst.iter_accessible_states_from(fst.initial_state, empty_set):
         pref = lcp(list(fst.iter_outgoing_from(q)))
         push_forward(fst, q, pref, rmul, ldiv, ingoing_trs)

@@ -70,8 +70,11 @@ def push_outgoing(
     for c, q_, v in fst.iter_outgoing_states_from(q):
         fst.transitions[(q, c)] = q_, lop(elem, v)
 
-    if q in fst.final_outputs:
+    try:
         v = fst.final_outputs[q]
+    except KeyError:
+        pass
+    else:
         fst.final_outputs[q] = lop(elem, v)
 
 

@@ -10,7 +10,7 @@ Type Parameters:
     V: Output value type
     T: Remainder after unification type
 """
-from typing import Any, Callable, Iterable, Reversible, TypeVar
+from typing import Any, Callable, Iterable, Reversible, Set, TypeVar
 
 from state_merging.automata.SFST import SFST
 from state_merging.operations.push_output import push_outgoing
@@ -86,10 +86,18 @@ def fold_merge(
     if verbose:
         print(f"attempting to merge state {q_src} into state {q_dest}")
 
-    if q_src in fst.final_outputs:
+    try:
         v_src = fst.final_outputs[q_src]
-        if q_dest in fst.final_outputs:
+    except KeyError:
+        pass
+    else:
+        try:
             v_dest = fst.final_outputs[q_dest]
+        except KeyError:
+            fst.final_outputs[q_dest] = v_src
+            undo_ops.append(lambda fst=fst, q=q_dest:
+                            fst.final_outputs.__delitem__(q))
+        else:
             match try_unify(v_src, v_dest):
                 case None:
                     return _run_all_rev(undo_ops)
@@ -98,21 +106,27 @@ def fold_merge(
                         return _run_all_rev(undo_ops)
                     fst.final_outputs[q_dest] = v_uni
                     undo_ops.append(lambda fst=fst, q=q_dest, v=v_dest:
-                                    fst.final_outputs.update({q: v}))
-        else:
-            fst.final_outputs[q_dest] = v_src
-            undo_ops.append(lambda fst=fst, q=q_dest:
-                            (fst.final_outputs.pop(q, None), None)[1])
+                                    fst.final_outputs.__setitem__(q, v))
 
         del fst.final_outputs[q_src]
         undo_ops.append(lambda fst=fst, q=q_src, v=v_src:
-                        fst.final_outputs.update({q: v}))
+                        fst.final_outputs.__setitem__(q, v))
 
     for c in fst.input_set:
-        if (q_src, c) in fst.transitions:
+        try:
             q_src_, v_src = fst.transitions[(q_src, c)]
-            if (q_dest, c) in fst.transitions:
+        except KeyError:
+            pass
+        else:
+            try:
                 q_dest_, v_dest = fst.transitions[(q_dest, c)]
+            except KeyError:
+                if verbose:
+                    print(f"directing state {q_dest} on input {c} to state {q_src_}")
+                fst.transitions[(q_dest, c)] = q_src_, v_src
+                undo_ops.append(lambda fst=fst, q=q_dest, c=c:
+                                fst.transitions.__delitem__((q, c)))
+            else:
                 match try_unify(v_src, v_dest):
                     case None:
                         return _run_all_rev(undo_ops)
@@ -122,7 +136,7 @@ def fold_merge(
                                         push_outgoing(fst, q_, r, ldiv))
                         fst.transitions[(q_dest, c)] = q_dest_, v_uni
                         undo_ops.append(lambda fst=fst, q=q_dest, c=c, q_=q_dest_, v=v_dest:
-                                        fst.transitions.update({(q, c): (q_, v)}))
+                                        fst.transitions.__setitem__((q, c), (q_, v)))
                         match fold_merge(
                             fst,
                             q_src_,
@@ -137,16 +151,10 @@ def fold_merge(
                                 return _run_all_rev(undo_ops)
                             case undo_fold_merge:
                                 undo_ops.append(undo_fold_merge)
-            else:
-                if verbose:
-                    print(f"directing state {q_dest} on input {c} to state {q_src_}")
-                fst.transitions[(q_dest, c)] = q_src_, v_src
-                undo_ops.append(lambda fst=fst, q=q_dest, c=c:
-                                (fst.transitions.pop((q, c), None), None)[1])
 
             del fst.transitions[(q_src, c)]
             undo_ops.append(lambda fst=fst, q=q_src, c=c, q_=q_src_, v=v_src:
-                            fst.transitions.update({(q, c): (q_, v)}))
+                            fst.transitions.__setitem__((q, c), (q_, v)))
 
     fst.state_set.remove(q_src)
     undo_ops.append(lambda fst=fst, q=q_src:
@@ -215,7 +223,7 @@ def merge(
             _, v = fst.transitions[(q_src_origin, c)]
             fst.transitions[(q_src_origin, c)] = q_dest, v
             undo_ops.append(lambda fst=fst, q=q_src_origin, c=c, q_=q_src, v=v:
-                            fst.transitions.update({(q, c): (q_, v)}))
+                            fst.transitions.__setitem__((q, c), (q_, v)))
 
     match fold_merge(
         fst,
@@ -241,8 +249,8 @@ def merge(
 def iterate_merge(
     fst: SFST[Q, U, V],
     try_merge: Callable[[SFST[Q, U, V], Q, Q, tuple[Q, U] | None], bool],
-    choose_transition: Callable[[SFST[Q, U, V], set[Q]], Q],
-    search_iter: Callable[[SFST[Q, U, V], set[Q]], Iterable[Q]],
+    choose_transition: Callable[[SFST[Q, U, V], Set[Q]], Q],
+    search_iter: Callable[[SFST[Q, U, V], Set[Q]], Iterable[Q]],
     verbose : bool = False
 ) -> None:
     """Iteratively merge states in an FST using customizable selection and search strategies.

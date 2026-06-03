@@ -91,12 +91,7 @@ def ldiv(pref: Sequence[U], u: Sequence[U]) -> Sequence[U]:
 
     Returns:
         The suffix of u after removing prefix pref.
-
-    Raises:
-        AssertionError: If pref is not a prefix of u.
     """
-    assert is_pref(pref, u), \
-        f"expected {pref} to be a prefix of {u}"
     return u[len(pref):]
 
 
@@ -109,14 +104,9 @@ def rdiv(u: Sequence[U], suff: Sequence[U]) -> Sequence[U]:
 
     Returns:
         The prefix of u after removing suffix suff.
-
-    Raises:
-        AssertionError: If suff is not a suffix of u.
     """
     if len(suff) == 0: # 0 is an edge case for negative indexing
         return suff
-    assert is_suff(u, suff), \
-        f"expected {suff} to be a suffix of {u}"
     return u[:-len(suff)]
 
 
@@ -147,9 +137,6 @@ def unify(u_src: Sequence[U], u_dest: Sequence[U]) -> tuple[Sequence[U], Sequenc
 
     Returns:
         The tuple (u_dest, suff) where u_dest + suff is exactly u_src.
-
-    Raises:
-        AssertionError: if u_dest is not a prefix of u_src.
     """
     try:
         return u_dest, ldiv(u_dest, u_src)

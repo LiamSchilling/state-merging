@@ -13,7 +13,7 @@ Type Parameters:
     D: Output component of data pair type
 """
 from dataclasses import dataclass, field
-from typing import Callable, Iterable, Iterator, Sequence, TypeVar
+from typing import Callable, Iterable, Iterator, MutableMapping, MutableSet, Sequence, Set, TypeVar
 
 from state_merging.automata.SFST import SFST
 
@@ -72,31 +72,36 @@ def insert_data_PTT(
 
     q = fst.initial_state
     for c in u:
-        if (q, c) in fst.transitions:
+        try:
             q_, v = fst.transitions[(q, c)]
-        else:
+        except KeyError:
             q_, v = next(state_supply), epsilon
             fst.state_set.add(q_)
             results.ptt_state_count += 1
         fst.transitions[(q, c)] = q_, incr(v)
         q = q_
 
-    if q in fst.final_outputs:
+    try:
         v = fst.final_outputs[q]
-        fst.final_outputs[q] = contribute(v, d)
-    else:
+    except KeyError:
         fst.final_outputs[q] = insertion(d)
+    else:
+        print("contribute")
+        fst.final_outputs[q] = contribute(v, d)
 
 
 def build_PTT(
-    input_set: set[U],
+    input_set: Set[U],
     dataset: Iterable[tuple[Sequence[U], D]],
     data_len: Callable[[D], int],
     epsilon: V,
     incr: Callable[[V], V],
     insertion: Callable[[D], V],
     contribute: Callable[[V, D], V],
-    state_supply: Iterator[Q]
+    state_supply: Iterator[Q],
+    empty_state_set: MutableSet[Q],
+    empty_transition_mapping: MutableMapping[tuple[Q, U], tuple[Q, V]],
+    empty_final_output_mapping: MutableMapping[Q, V]
 ) -> tuple[SFST[Q, U, V], PTTResults]:
     """Build a prefix tree transducer from a collection of (sequence, data) pairs.
 
@@ -117,23 +122,40 @@ def build_PTT(
         contribute: Binary operation to accumulate data values at shared final states.
                     Signature: (V, D) -> V
         state_supply: Iterator that generates fresh state identifiers for new trie nodes.
+        empty_transition_mapping: An empty mapping for transitions. Allows the caller to
+                                  optimize mapping type (e.g., DenseIntDict) while keeping
+                                  the function generic.
+        empty_final_output_mapping: An empty mapping for final outputs. Allows the caller to
+                                    optimize mapping type while keeping the function generic.
 
     Returns:
         A new SFST[Q, U, V] representing the prefix tree structure with accumulated values.
     """
     q0 = next(state_supply)
+    empty_state_set.add(q0)
+
     fst: SFST[Q, U, V] = SFST(
-        state_set={q0},
+        state_set=empty_state_set,
         input_set=input_set,
         initial_state=q0,
-        transitions={},
+        transitions=empty_transition_mapping,
         initial_output=epsilon,
-        final_outputs={}
+        final_outputs=empty_final_output_mapping
     )
 
-    results = PTTResults()
+    results = PTTResults(ptt_state_count=1)
 
     for data in dataset:
-        insert_data_PTT(fst, results, data, data_len, epsilon, incr, insertion, contribute, state_supply)
+        insert_data_PTT(
+            fst,
+            results,
+            data,
+            data_len,
+            epsilon,
+            incr,
+            insertion,
+            contribute,
+            state_supply
+    )
 
     return fst, results

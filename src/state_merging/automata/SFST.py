@@ -11,7 +11,7 @@ Type Parameters:
     A: Accumulator type
 """
 from dataclasses import dataclass
-from typing import Callable, Generic, Iterator, Mapping, MutableMapping, Sequence, TypeVar
+from typing import Callable, Generic, Iterator, MutableMapping, MutableSet, Sequence, Set, TypeVar
 
 Q = TypeVar('Q')
 U = TypeVar('U')
@@ -61,22 +61,12 @@ class SFST(Generic[Q, U, V]):
         ...     final_outputs={0: 0, 1: 0, 2: 0}
         ... )
     """
-    state_set: set[Q]
-    input_set: set[U]
+    state_set: MutableSet[Q]
+    input_set: Set[U]
     initial_state: Q
     transitions: MutableMapping[tuple[Q, U], tuple[Q, V]]
     initial_output: V
     final_outputs: MutableMapping[Q, V]
-
-    def __copy__(self) -> 'SFST[Q, U, V]':
-        return SFST(
-            state_set=set(self.state_set),
-            input_set=set(self.input_set),
-            initial_state=self.initial_state,
-            transitions=dict(self.transitions),
-            initial_output=self.initial_output,
-            final_outputs=dict(self.final_outputs)
-        )
 
     def iter_outputs(self) -> Iterator[V]:
         """Iterate over all outputs in the machine.
@@ -138,9 +128,11 @@ class SFST(Generic[Q, U, V]):
             Tuples of (input_symbol, next_state, output) for each transition leaving the state.
         """
         for c in self.input_set:
-            if (q, c) in self.transitions:
+            try:
                 q_, v = self.transitions[(q, c)]
                 yield c, q_, v
+            except KeyError:
+                pass
 
     def iter_outgoing_from(self, q: Q) -> Iterator[V]:
         """Iterate over all output values from outgoing edges of a given state.
@@ -157,10 +149,12 @@ class SFST(Generic[Q, U, V]):
         """
         for _, _, v in self.iter_outgoing_states_from(q):
             yield v
-        if q in self.final_outputs:
+        try:
             yield self.final_outputs[q]
+        except KeyError:
+            pass
 
-    def iter_accessible_states_from(self, q: Q, ignore: set[Q]) -> Iterator[Q]:
+    def iter_accessible_states_from(self, q: Q, ignore: MutableSet[Q]) -> Iterator[Q]:
         """Iterate over all states in the machine accessible from some start state.
 
         Performs a depth-first search over the machine,
@@ -184,29 +178,32 @@ class SFST(Generic[Q, U, V]):
         ignore.remove(q)
         yield q
 
-    def ingoing_transitions(self) -> Mapping[Q, list[tuple[Q, U]]]:
-        """Build a cached mapping of incoming transitions for all states.
+    def accumulate_ingoing_transitions(self, trs: MutableMapping[Q, list[tuple[Q, U]]]) -> None:
+        """Accumulate incoming transitions for all states.
 
-        Constructs a reverse mapping from the transitions dictionary, grouping all
-        incoming transitions by their destination state. This avoids repeatedly
-        scanning all transitions when multiple operations need to access ingoing
-        edges, providing a significant efficiency improvement for operations like
+        Appends reverse mapping entries from the transitions dictionary into an existing
+        mutable mapping, grouping incoming transitions by their destination state. This
+        avoids repeatedly scanning all transitions when multiple operations need to access
+        ingoing edges, providing a significant efficiency improvement for operations like
         push_forward and push_backward.
 
-        Returns:
-            A mapping from each state to a list of (source_state, input_symbol) tuples
-            representing all transitions that end at that state.
+        The caller is responsible for initializing the mapping with empty lists for each
+        state before calling this method (or use a defaultdict(list)).
+
+        Args:
+            trs: A mutable mapping with pre-initialized lists for each state. Will be
+                 modified in-place; each call appends (source_state, input_symbol) tuples
+                 to trs[q] for all transitions ending at state q.
 
         Example:
             >>> fst = SFST(...)  # transducer with transitions {(0, 'a'): (1, 1), (2, 'b'): (1, 2)}
-            >>> ingoing = fst.ingoing_transitions()
+            >>> ingoing: dict[int, list[tuple[int, str]]] = {0: [], 1: [], 2: []}
+            >>> fst.accumulate_ingoing_transitions(ingoing)
             >>> ingoing[1]  # transitions ending at state 1
             [(0, 'a'), (2, 'b')]
         """
-        trs: dict[Q, list[tuple[Q, U]]] = {q: [] for q in self.state_set}
         for (q, c), (q_, _) in self.transitions.items():
             trs[q_].append((q, c))
-        return trs
 
 
 def assert_SFST(fst: SFST[Q, U, V]) -> None:
@@ -269,11 +266,12 @@ def run_from(
     """
     a = init
     for c in u:
-        if (q, c) in fst.transitions:
+        try:
             q, v = fst.transitions[(q, c)]
-            a = acc(a, v)
-        else:
+        except KeyError:
             return None
+        else:
+            a = acc(a, v)
     return q, a
 
 
@@ -311,7 +309,9 @@ def run(
         case None:
             return None
         case q, a:
-            if q in fst.final_outputs:
-                return q, acc(a, fst.final_outputs[q])
-            else:
+            try:
+                v = fst.final_outputs[q]
+            except KeyError:
                 return None
+            else:
+                return q, acc(a, v)

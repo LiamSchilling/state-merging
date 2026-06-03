@@ -9,7 +9,7 @@ Type Parameters:
     V: Output value type
     A: Accumulator type
 """
-from typing import Callable, Mapping, TypeAlias, TypeVar
+from typing import Callable, MutableMapping, TypeAlias, TypeVar
 
 from state_merging.automata.SFST import SFST, assert_SFST
 
@@ -82,22 +82,22 @@ Example:
 """
 
 
-def outgoing_probabilities(fst: PSFST[Q, U, V]) -> Mapping[Q, float]:
-    """Compute the total outgoing probability from all states, which should be 1.0 for every state.
+def accumulate_outgoing_probabilities(fst: PSFST[Q, U, V], probs: MutableMapping[Q, float]) -> None:
+    """Accumulate the outgoing probabilities from all states.
 
-    Sums the probability components of all transitions from state `q` and
-    the probability component of the final output for `q` (if defined).
+    Adds the probability components of all transitions from each state and
+    the probability component of the final output (if defined) to the provided
+    mapping. The caller is responsible for initializing the mapping with the
+    appropriate values before calling this method.
 
     Args:
         fst: The PSFST to analyze.
-
-    Returns:
-        A mapping from each state in `state_set` to its total outgoing probability.
+        probs: A mutable mapping from states to accumulated probabilities. Will be
+               modified in-place; each call accumulates outgoing probability values
+               to probs[q] for all states q.
     """
-    probs: dict[Q, float] = {q: 0.0 for q in fst.state_set}
     for q, (_, p) in fst.iter_outgoing():
         probs[q] += p
-    return probs
 
 
 def assert_PSFST(fst: PSFST[Q, U, V], delta: float) -> None:
@@ -123,7 +123,7 @@ def assert_PSFST(fst: PSFST[Q, U, V], delta: float) -> None:
     assert 1.0 - delta <= p and p <= 1.0 + delta, \
         f"`initial_output` probability {p} is not 1.0"
 
-    outgoing_probs = outgoing_probabilities(fst)
+    accumulate_outgoing_probabilities(fst, outgoing_probs := {q: 0.0 for q in fst.state_set})
     for q in fst.state_set:
         p = outgoing_probs[q]
         assert 1.0 - delta <= p and p <= 1.0 + delta, \

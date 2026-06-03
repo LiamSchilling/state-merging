@@ -14,8 +14,19 @@ Type Parameters:
     D: Output component of data pair type
     T: Result of LCP type
 """
+import time
 from dataclasses import dataclass, field
-from typing import Callable, Collection, Iterable, Iterator, Sequence, TypeVar
+from typing import (
+    Callable,
+    Collection,
+    Iterable,
+    Iterator,
+    MutableMapping,
+    MutableSet,
+    Sequence,
+    Set,
+    TypeVar,
+)
 
 from state_merging.automata.SFST import SFST
 from state_merging.operations.build_PTT import PTTResults, build_PTT
@@ -35,6 +46,9 @@ class MergeResults(PTTResults):
     """Results of a state-merging learner."""
     merged_state_count: int = field(default=0)
     result_state_count: int = field(default=0)
+    build_ptt_time: float = field(default=0.0)
+    merge_states_time: float = field(default=0.0)
+    postprocess_time: float = field(default=0.0)
 
     @classmethod
     def from_ptt_results(cls, ptt_results: PTTResults) -> 'MergeResults':
@@ -57,15 +71,20 @@ def learn_by_state_merging(
     try_unify: Callable[[V, V], tuple[V, T] | None],
     is_epsilon: Callable[[T], bool],
     check_merge: Callable[[SFST[Q, U, V]], bool],
-    choose_transition: Callable[[SFST[Q, U, V], set[Q]], Q],
-    search_iter: Callable[[SFST[Q, U, V], set[Q]], Iterable[Q]],
+    choose_transition: Callable[[SFST[Q, U, V], Set[Q]], Q],
+    search_iter: Callable[[SFST[Q, U, V], Set[Q]], Iterable[Q]],
     state_supply: Iterator[Q],
     postprocess: Callable[[SFST[Q, U, V]], SFST[Q, U, V_]],
+    empty_fst_state_set: MutableSet[Q],
+    empty_transition_mapping: MutableMapping[tuple[Q, U], tuple[Q, V]],
+    empty_final_output_mapping: MutableMapping[Q, V],
+    make_empty_visited_state_set: Callable[[MutableSet[Q]], MutableSet[Q]],
+    make_default_populated_mapping: Callable[[MutableSet[Q]], MutableMapping[Q, list[tuple[Q, U]]]],
     verbose: bool = False
 ) -> tuple[SFST[Q, U, V_], MergeResults]:
     """Learn an SFST from training data through prefix-tree construction and state merging.
 
-    This is the main entry point for learning FSTs. The algorithm follows the ALERGIA/APTI2
+    This is the main entry point for learning FSTs.
     paradigm: build a prefix tree from the data, normalize it, then iteratively merge
     compatible states based on provided search and merge strategies.
 
@@ -89,6 +108,21 @@ def learn_by_state_merging(
         search_iter: Heuristic yielding candidate states to try merging with.
         state_supply: Iterator providing fresh state identifiers as needed.
         postprocess: Function to transform final transducer (e.g., normalize outputs).
+        empty_fst_state_set: An empty set for FST states passed to build_PTT.
+                             States are guaranteed to be inserted in the order provided by
+                             state_supply.
+        empty_transition_mapping: An empty mapping for transitions passed to build_PTT.
+                                  Allows optimizing mapping type (e.g., DenseIntDict)
+                                  while keeping the function generic.
+        empty_final_output_mapping: An empty mapping for final outputs passed to build_PTT.
+                                    Allows optimizing mapping type while keeping the
+                                    function generic.
+        make_empty_visited_state_set: Factory creating an empty set for visited states during
+                                      onwardization. Takes the total state set as argument to
+                                      allow optimizations based on state set size.
+        make_default_populated_mapping: Factory creating a mapping from states to incoming
+                                        transition lists. Allows optimizing mapping type
+                                        (e.g., DenseIntDict) while keeping the function generic.
         verbose: Whether to print progress information during learning.
 
     Returns:
@@ -107,6 +141,8 @@ def learn_by_state_merging(
             "\n]\n"
         )
 
+    build_ptt_start = time.perf_counter()
+
     fst: SFST[Q, U, V]
     fst, ptt_results = build_PTT(
         input_set,
@@ -116,7 +152,10 @@ def learn_by_state_merging(
         incr,
         insertion,
         contribute,
-        state_supply
+        state_supply,
+        empty_fst_state_set,
+        empty_transition_mapping,
+        empty_final_output_mapping
     )
 
     results = MergeResults.from_ptt_results(ptt_results)
@@ -124,10 +163,22 @@ def learn_by_state_merging(
     if verbose:
         print(f"naively constructed PTT:\n{fst}\n")
 
-    onwardize_trim_acyclic(fst, rmul, ldiv, lcp)
+    onwardize_trim_acyclic(
+        fst,
+        rmul,
+        ldiv,
+        lcp,
+        make_empty_visited_state_set(fst.state_set),
+        make_default_populated_mapping(fst.state_set)
+    )
 
     if verbose:
         print(f"onwardized PTT:\n{fst}\n")
+
+    build_ptt_end = time.perf_counter()
+    results.build_ptt_time = build_ptt_end - build_ptt_start
+
+    merge_states_start = time.perf_counter()
 
     def try_merge(
         fst_: SFST[Q, U, V],
@@ -161,11 +212,21 @@ def learn_by_state_merging(
     if verbose:
         print(f"FST after state-merging:\n{fst}\n")
 
+    merge_states_end = time.perf_counter()
+    results.merge_states_time = merge_states_end - merge_states_start
+
+    postprocess_start = time.perf_counter()
+
     fst_: SFST[Q, U, V_] = postprocess(fst)
     results.result_state_count = len(fst_.state_set)
 
     if verbose:
         print(f"result FST of learning algorithm:\n{fst_}\n")
+
+    postprocess_end = time.perf_counter()
+    results.postprocess_time = postprocess_start - postprocess_end
+
+    if verbose:
         print(f"collected meta results:\n{results}")
 
     return fst_, results
