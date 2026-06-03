@@ -77,9 +77,7 @@ def is_suff(u: Sequence[U], suff: Sequence[U]) -> bool:
     Returns:
         True if suff is a suffix of u, False otherwise.
     """
-    if len(suff) == 0: # 0 is an edge case for negative indexing
-        return True
-    return u[-len(suff):] == suff
+    return len(suff) == 0 or u[-len(suff):] == suff
 
 
 def ldiv(pref: Sequence[U], u: Sequence[U]) -> Sequence[U]:
@@ -105,9 +103,7 @@ def rdiv(u: Sequence[U], suff: Sequence[U]) -> Sequence[U]:
     Returns:
         The prefix of u after removing suffix suff.
     """
-    if len(suff) == 0: # 0 is an edge case for negative indexing
-        return suff
-    return u[:-len(suff)]
+    return u if len(suff) == 0 else u[:-len(suff)] # 0 is an edge case for negative indexing
 
 
 def match(u_src: Sequence[U], u_dest: Sequence[U]) -> Sequence[U]:
@@ -138,7 +134,7 @@ def unify(u_src: Sequence[U], u_dest: Sequence[U]) -> tuple[Sequence[U], Sequenc
     Returns:
         The tuple (u_dest, suff) where u_dest + suff is exactly u_src.
     """
-    try:
+    if is_pref(u_dest, u_src):
         return u_dest, ldiv(u_dest, u_src)
-    except AssertionError:
+    else:
         return None
