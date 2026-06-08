@@ -1,3 +1,7 @@
 """Decision tree models."""
 
-__all__ = []
+from . import decision_tree
+
+__all__ = [
+    "decision_tree",
+]
