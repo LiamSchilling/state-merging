@@ -2,10 +2,12 @@
 
 Type Parameters:
     U: Sequence element type
+    U: Another sequence element type
 """
-from typing import Collection, Sequence, TypeVar
+from typing import Callable, Collection, Sequence, TypeVar
 
 U = TypeVar('U')
+V = TypeVar('V')
 
 
 def lcp(us: Collection[Sequence[U]], epsilon: Sequence[U]) -> Sequence[U]:
@@ -52,6 +54,50 @@ def lcp(us: Collection[Sequence[U]], epsilon: Sequence[U]) -> Sequence[U]:
         return some_u[:i]
     else:
         return epsilon
+
+
+def edit_distance(
+    u: Sequence[U],
+    v: Sequence[V],
+    del_cost: Callable[[U], int],
+    ins_cost: Callable[[V], int],
+    subst_cost: Callable[[U, V], int]
+) -> int:
+    """Compute the minimum cost edit distance between two sequences.
+
+    Uses dynamic programming to find the minimum cost sequence of edit operations
+    (insertions, deletions, and substitutions) needed to transform sequence u
+    into sequence v. Each operation has an associated cost provided by the
+    corresponding cost function.
+
+    Args:
+        u: The source sequence to transform.
+        v: The target sequence to transform into.
+        del_cost: Function that returns the cost of deleting an element from u.
+        ins_cost: Function that returns the cost of inserting an element from v.
+        subst_cost: Function that returns the cost of substituting an element from u
+                    with an element from v.
+
+    Returns:
+        The minimum cost to transform u into v.
+    """
+    pref_costs = [[0 for _ in range(len(v) + 1)] for _ in range(len(u) + 1)]
+
+    for i in range(len(u)):
+        pref_costs[i+1][0] = pref_costs[i][0] + del_cost(u[i])
+
+    for j in range(len(v)):
+        pref_costs[0][j+1] = pref_costs[0][j] + ins_cost(v[j])
+
+    for i in range(len(u)):
+        for j in range(len(v)):
+            pref_costs[i+1][j+1] = min(
+                pref_costs[i][j+1] + del_cost(u[i]),
+                pref_costs[i+1][j] + ins_cost(v[j]),
+                pref_costs[i][j] + subst_cost(u[i], v[j])
+            )
+
+    return pref_costs[len(u)][len(v)]
 
 
 def is_pref(pref: Sequence[U], u: Sequence[U]) -> bool:
