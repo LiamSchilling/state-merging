@@ -12,6 +12,7 @@ Type parameters:
     N: Value type stored at internal (non-leaf) nodes.
     L: Value type stored at leaves.
 """
+
 from dataclasses import dataclass
 from typing import Generic, TypeAlias, TypeVar
 

@@ -14,6 +14,7 @@ Type Parameters:
     D: Output component of data pair type
     T: Result of LCP type
 """
+
 import time
 from dataclasses import dataclass, field
 from typing import (

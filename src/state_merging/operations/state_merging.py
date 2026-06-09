@@ -10,6 +10,7 @@ Type Parameters:
     V: Output value type
     T: Remainder after unification type
 """
+
 from typing import Any, Callable, Iterable, Reversible, Set, TypeVar
 
 from state_merging.automata.SFST import SFST

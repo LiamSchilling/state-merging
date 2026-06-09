@@ -17,6 +17,7 @@ Type parameters:
     V: Output / label value type stored at leaves.
     D: Datum type stored alongside inputs in the dataset.
 """
+
 from typing import Callable, Collection, Mapping, MutableMapping, TypeVar
 
 from decision_tree_inference.decision_trees.decision_tree import DecisionTree

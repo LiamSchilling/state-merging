@@ -10,6 +10,7 @@ Type Parameters:
     V: Output value type
     A: Accumulator type
 """
+
 from dataclasses import dataclass
 from typing import Callable, Generic, Iterator, MutableMapping, MutableSet, Sequence, Set, TypeVar
 

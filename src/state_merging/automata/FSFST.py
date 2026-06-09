@@ -9,6 +9,7 @@ Type Parameters:
     V: Output value type
     A: Accumulator type
 """
+
 from typing import Callable, MutableMapping, TypeAlias, TypeVar
 
 from state_merging.automata.SFST import SFST, assert_SFST

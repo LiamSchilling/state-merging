@@ -3,6 +3,7 @@
 References:
     CMU Pronouncing Dictionary: http://www.speech.cs.cmu.edu/cgi-bin/cmudict
 """
+
 from typing import Iterator
 
 import cmudict

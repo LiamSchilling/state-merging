@@ -5,6 +5,7 @@ Type Parameters:
     U: Input symbol type
     V: Output symbol type
 """
+
 from typing import Callable, Iterable, Iterator, MutableMapping, MutableSet, Sequence, Set, TypeVar
 
 from state_merging.automata.SFST import SFST

@@ -4,6 +4,7 @@ Type Parameters:
     U: Sequence element type
     U: Another sequence element type
 """
+
 from typing import Callable, Collection, Sequence, TypeVar
 
 U = TypeVar('U')

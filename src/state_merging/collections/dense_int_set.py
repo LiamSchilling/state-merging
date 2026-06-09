@@ -3,6 +3,7 @@
 Wraps DenseIntDict[int, None] to provide an efficient set implementation
 for dense ranges of non-negative integers.
 """
+
 from typing import Iterator, MutableSet
 
 from state_merging.collections.dense_int_dict import DenseIntDict

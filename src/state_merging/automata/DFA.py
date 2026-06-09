@@ -7,6 +7,7 @@ Type Parameters:
     Q: State type
     U: Input symbol type
 """
+
 from typing import TypeAlias, TypeVar
 
 from state_merging.automata.SFST import SFST, assert_SFST

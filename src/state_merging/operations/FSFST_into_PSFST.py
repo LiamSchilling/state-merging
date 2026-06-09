@@ -9,6 +9,7 @@ Type Parameters:
     U: Input symbol type
     V: Output value type
 """
+
 from typing import MutableMapping, TypeVar, cast
 
 from state_merging.automata.FSFST import FSFST, accumulate_outgoing_frequencies

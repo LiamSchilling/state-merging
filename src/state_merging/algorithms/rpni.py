@@ -4,6 +4,7 @@ Type Parameters:
     Q: State type
     U: Input symbol type
 """
+
 from typing import Callable, Iterable, Iterator, MutableMapping, MutableSet, Sequence, Set, TypeVar
 
 from state_merging.automata.DFA import DFA

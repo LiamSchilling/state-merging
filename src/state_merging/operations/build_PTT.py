@@ -12,6 +12,7 @@ Type Parameters:
     V: Output value type
     D: Output component of data pair type
 """
+
 from dataclasses import dataclass, field
 from typing import Callable, Iterable, Iterator, MutableMapping, MutableSet, Sequence, Set, TypeVar
 

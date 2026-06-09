@@ -8,6 +8,7 @@ Type parameters:
     U: Input instance type supplied to the classifier.
     V: Output / label value type stored at leaves.
 """
+
 from dataclasses import dataclass
 from typing import Callable, Generic, Mapping, TypeVar
 

@@ -10,6 +10,7 @@ Type Parameters:
     V: Output value type
     T: Result of LCP type
 """
+
 from typing import Callable, Collection, MutableMapping, MutableSet, TypeVar
 
 from state_merging.automata.SFST import SFST
