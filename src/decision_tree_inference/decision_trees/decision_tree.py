@@ -8,7 +8,6 @@ Type parameters:
     U: Input instance type supplied to the classifier.
     V: Output / label value type stored at leaves.
 """
-
 from dataclasses import dataclass
 from typing import Callable, Generic, Mapping, TypeVar
 
@@ -81,7 +80,7 @@ def assert_DecisionTree(dt: DecisionTree[C, V]) -> None:
             raise DecisionTreeMatchingError(dt)
 
 
-def decide(x: U, classify: Callable[[U, C], int], dt: DecisionTree[C, V]) -> V:
+def decide(u: U, classify: Callable[[U, C], int], dt: DecisionTree[C, V]) -> V:
     """Apply a decision tree to an input instance using a classifier.
 
     The `classify` callback is responsible for returning an integer label for a
@@ -107,14 +106,14 @@ def decide(x: U, classify: Callable[[U, C], int], dt: DecisionTree[C, V]) -> V:
             return value
 
         case DecisionTree(num_labels_per_class, Node(split, children)):
-            label = classify(x, split)
+            label = classify(u, split)
             num_labels = num_labels_per_class[split]
 
             if 0 > label or label >= num_labels:
                 raise ValueError(f"bad label {label} for class {split} with {num_labels} labels")
 
             return decide(
-                x,
+                u,
                 classify,
                 DecisionTree(num_labels_per_class, children[label])
             )
